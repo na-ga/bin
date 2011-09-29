@@ -88,6 +88,12 @@ else
   fi
 fi
 
-# login
-ssh ${USER_NAME}@${HOST_NAME}
+# remote login
+if [ "$TERM" = "screen" ]; then
+  screen -t "${HOST_NAME}" ssh ${USER_NAME}@${HOST_NAME}
+else
+  ssh ${USER_NAME}@${HOST_NAME}
+fi
 
+exit 0
+exit 0
