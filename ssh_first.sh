@@ -9,17 +9,17 @@
 #---------------------------------------------------------------------
 
 # config
-USER="nagaoka_katsutoshi"
-HOME="/home/share/${USER}"
-KEY="${HOME}/.ssh/id_rsa.pub"
-KNOWN_HOSTS="${HOME}/.ssh/known_hosts"
+USER_NAME="${USER:-nagaoka_katsutoshi}"
+HOME_DIR="${HOME:-/home/share/${USER_NAME}}"
+PUBLIC_KEY="${HOME_DIR}/.ssh/id_rsa.pub"
+KNOWN_HOSTS="${HOME_DIR}/.ssh/known_hosts"
 
 # args
-HOST=$1
+HOST_NAME=$1
 OPTION=$2
 
 # check parameter
-if [ "x${HOST}" = "x" ]; then
+if [ "x${HOST_NAME}" = "x" ]; then
   echo "Usage: $0 <host> [<option>]"
   exit 1
 fi
@@ -40,35 +40,35 @@ function printServerList(){
 }
 
 # check host
-ping -c 1 ${HOST} > /dev/null 2>&1
+ping -c 1 ${HOST_NAME} > /dev/null 2>&1
 if [ $? != 0 ]; then
-  echo "error: could not connect to server: ${HOST}"
-  printServerList "${HOST}"
+  echo "error: could not connect to server: ${HOST_NAME}"
+  printServerList "${HOST_NAME}"
   exit 1
 fi
 
 # ssh-keygen
-while [ ! -f "${KEY}" ]; do
-  echo "${KEY} is not found. create public key."
+while [ ! -f "${PUBLIC_KEY}" ]; do
+  echo "${PUBLIC_KEY} is not found. create public key."
   ssh-keygen
 done
 
 # add authorized_keys
-ssh ${USER}@${HOST} "grep \"`cat ${KEY}`\" ~/.ssh/authorized_keys > /dev/null 2>&1 \
+ssh ${USER_NAME}@${HOST_NAME} "grep \"`cat ${PUBLIC_KEY}`\" ~/.ssh/authorized_keys > /dev/null 2>&1 \
 || ((test -d ~/.ssh || mkdir -p ~/.ssh) \
-&& echo incert to public_key ; echo `cat ${KEY}` >> ~/.ssh/authorized_keys)"
+&& echo incert to public_key ; echo `cat ${PUBLIC_KEY}` >> ~/.ssh/authorized_keys)"
 
 # vimrc & plugin directory
 function copyVimrc(){
   echo $@
-  scp -p ~/.vimrc ${USER}@${HOST}:~/.vimrc > /dev/null 2>&1
-  scp -rp ~/.vim ${USER}@${HOST}:~/.vim > /dev/null 2>&1
+  scp -p ~/.vimrc ${USER_NAME}@${HOST_NAME}:~/.vimrc > /dev/null 2>&1
+  scp -rp ~/.vim ${USER_NAME}@${HOST_NAME}:~/.vim > /dev/null 2>&1
 }
 
 # bin directory
 function copyBin(){
   echo $@
-  scp -rp ~/bin ${USER}@${HOST}:~/bin > /dev/null 2>&1
+  scp -rp ~/bin ${USER_NAME}@${HOST_NAME}:~/bin > /dev/null 2>&1
 }
 
 # copy config files (overwrite mode)
@@ -78,16 +78,16 @@ if [ "${OPTION}" = "overwrite" ]; then
 
 # copy config files (exist check mode)
 else
-  ssh ${USER}@${HOST} "test -f ~/.vimrc"
+  ssh ${USER_NAME}@${HOST_NAME} "test -f ~/.vimrc"
   if [ $? != 0 ]; then
     copyVimrc "copy to vimrc & plugin direcotory"
   fi
-  ssh ${USER}@${HOST} "test -d ~/bin"
+  ssh ${USER_NAME}@${HOST_NAME} "test -d ~/bin"
   if [ $? != 0 ]; then
     copyBin "copy to bin directory"
   fi
 fi
 
 # login
-ssh ${USER}@${HOST}
+ssh ${USER_NAME}@${HOST_NAME}
 
