@@ -12,6 +12,7 @@
 USER="nagaoka_katsutoshi"
 HOME="/home/share/${USER}"
 KEY="${HOME}/.ssh/id_rsa.pub"
+KNOWN_HOSTS="${HOME}/.ssh/known_hosts"
 
 # args
 HOST=$1
@@ -23,17 +24,26 @@ if [ "x${HOST}" = "x" ]; then
   exit 1
 fi
 
+# kown_hosts file check
+function printServerList(){
+  if [ ! -f ${KNOWN_HOSTS} ]; then
+    return
+  fi
+  SERVER_LIST=`cat ${KNOWN_HOSTS} | cut -d" " -f1 | cut -d"," -f1 | grep "$@"`
+  if [ "${SERVER_LIST}" = "" ]; then
+    return
+  fi
+  echo "server list extracted from ${KNOWN_HOSTS}: $@"
+  for SERVER in ${SERVER_LIST}; do
+    echo "[*] ${SERVER}"
+  done
+}
+
 # check host
 ping -c 1 ${HOST} > /dev/null 2>&1
 if [ $? != 0 ]; then
   echo "error: could not connect to server: ${HOST}"
-  LIST=`cat ${HOME}/.ssh/known_hosts | cut -d" " -f1 | cut -d"," -f1 | grep "${HOST}"`
-  if [ "${LIST}" != "" ]; then
-    echo "server list extracted from known_hosts file: ${HOST}"
-    for SERVER in ${LIST}; do
-      echo "[*] ${SERVER}"
-    done
-  fi
+  printServerList "${HOST}"
   exit 1
 fi
 
