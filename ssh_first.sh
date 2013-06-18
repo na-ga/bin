@@ -42,9 +42,12 @@ function printServerList(){
 # check host
 ping -c 1 ${HOST_NAME} > /dev/null 2>&1
 if [ $? != 0 ]; then
-  echo "error: could not connect to server: ${HOST_NAME}"
-  printServerList "${HOST_NAME}"
-  exit 1
+  ping6 -c 1 ${HOST_NAME} > /dev/null 2>&1
+  if [ $? != 0 ]; then
+    echo "error: could not connect to server: ${HOST_NAME}"
+    printServerList "${HOST_NAME}"
+    exit 1
+  fi
 fi
 
 # ssh-keygen
